@@ -1,16 +1,17 @@
-﻿Build started 12/3/2016 2:59:28 PM.
+﻿Build started 12/4/2016 2:06:35 AM.
      1>Project "C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\nvGraphExample\nvGraphExample.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\/include" /I"C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\common\inc" /ZI /nologo /W3 /WX- /Od /D WIN32 /D WIN64 /D _DEBUG /D _CONSOLE /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt main.cpp
          main.cpp
+     1>c:\users\bryan massoth\desktop\parallel programming\finalproject\nvgraphexample\nvgraphexample\main.cpp(99): warning C4305: 'initializing': truncation from 'double' to 'float'
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\nvGraphExample.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\x64" nvgraph.lib cudart.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\nvGraphExample.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\nvGraphExample.lib" /MACHINE:X64 x64\Debug\main.obj
-         nvGraphExample.vcxproj -> C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\nvGraphExample.exe
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\nvGraphExample.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\x64" nvgraph.lib cudart.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\nvGraphExample.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\nvGraphExample.lib" /MACHINE:X64 x64\Debug\main.obj
+         nvGraphExample.vcxproj -> C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\nvGraphExample.exe
        PostBuildEvent:
-         echo copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\"
-         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\"
+         echo copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\"
+         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\"
          :VCEnd
-         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\Users\Bryan Massoth\Desktop\parallel programming\FinalProject\nvGraphExample\x64\Debug\"
+         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart*.dll" "C:\ProgramData\NVIDIA Corporation\CUDA Samples\v8.0\bin\win64\Debug\"
          C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart32_80.dll
          C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin\cudart64_80.dll
                  2 file(s) copied.
@@ -18,4 +19,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.86
+Time Elapsed 00:00:00.85
