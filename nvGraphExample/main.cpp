@@ -1,3 +1,24 @@
+/* AUTHOR: Bryan Massoth
+** PURPOSE: To combine nvGraph functions into a more meaningful example. Also, to include more easily understood documentation of how to use nvGraph
+** WALKTHROUGH:
+**		First, load data in the form "source\tdestination(\tweight)"(optional) from the file specified by DATA_FILENAME. NVERTICES and NEDGES must be
+**	set (hardcoded) to load data from file. (nvertices and nedges is recommended to be stored as a comment in the file) After data is loaded, the data
+**	is then stored into a COO topology and converted to the specified topology (CSC or CSR; see NOTE [Ctrl+f:NOTE] for more info). This will allocate
+**	the necessary memory for the converted topology (therefore you must free it). During the conversion process, a "bookmark" (info about "dangling"
+**	nodes) is set for use by nvgraphPagerank(). After the conversion, the useful topology is then assigned to a graph. This graph along with the edge
+**	data is then passed to the selected nvgraph wrapper function. SEE SPECIFICS OF EACH FUNCTION. The results are then written to "results.txt".
+**	Finally, all the cleanup.
+** POSSIBLE IMPROVEMENTS:
+**	1. Since, vertex/edge data allocation is the same for both Pagerank and SSSP, they can probably be combined into one set of allocations and be run sequentially
+**		without having to choose an algorithm.
+**	2. Update the reading in of data from files to include the nvertices and nedges data to also be read and dynamically create the necessary arrays
+**		for vertex/edge data.
+**	3. Update the writing of data to write to a unique results file based on the input file (i.e. input: example.txt; output: example-results.txt)
+** ACKNOWLEDGEMENTS:
+**	* "check" is from nvGraph examples (with a minor tweak)
+**	* Code for timing results comes from a University of Louisville CECS 625 project (which might take it from somewhere else) 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -9,6 +30,12 @@
 
 #define DEBUG true
 #define which_algorithm 1 //0 = nvgraphSssp(), 1 = nvgraphPagerank()
+
+//"META" data about what is going on
+#define NVERTICES 281903 //Number of vertices of the graph
+#define NEDGES 2312497	//Number of edges in the graph
+#define SOURCE_VERTEX 4	//Used by nvgraphSssp()
+#define DATA_FILENAME "web-Stanford.txt" //File name where data will be pulled from
 
 void check(nvgraphStatus_t status) {
 	if (status != NVGRAPH_STATUS_SUCCESS) {
@@ -33,7 +60,7 @@ int main(int argc, char **argv) {
 	cudaDataType_t edge_dimT = CUDA_R_32F;
 
 	//specifics for the dataset being used
-	int nvertices = 6, nedges = 10; //REMEMBER TO CHANGE THIS FOR EVERY NEW FILE
+	int nvertices = NVERTICES, nedges = NEDGES; //REMEMBER TO CHANGE THIS FOR EVERY NEW FILE
 	int *source_indices_h, *destination_indices_h;
 	float *edge_data_h, *bookmark_h;
 	source_indices_h = (int *)malloc(sizeof(int)*nedges);
@@ -46,9 +73,10 @@ int main(int argc, char **argv) {
 	nvgraphCreateGraphDescr(handle, &graph);
 
 	//load the dataset from the file
-	load_from_file("test-sssp.txt", source_indices_h, destination_indices_h, edge_data_h, nedges);
+	load_from_file(DATA_FILENAME, source_indices_h, destination_indices_h, edge_data_h, nedges);
 
 	//Initialize topology for conversion and convert
+	//NOTE: This converts to CSC topology which is used for these algorithms. CSR can not be used for these algorithms. Also, CSR and CSC are mutually exclusive with respect to algorithms. See nvGraph docs for more info.
 	col_major_topology = (nvgraphCSCTopology32I_t)malloc(sizeof(struct nvgraphCSCTopology32I_st));
 	nvgraph_convert_topology(handle, nedges, nvertices, source_indices_h, destination_indices_h, edge_data_h, NVGRAPH_CSC_32, col_major_topology, bookmark_h);
 
@@ -113,10 +141,25 @@ void nvgraph_pagerank(nvgraphHandle_t *handle_p, nvgraphGraphDescr_t *graph_p, f
 	check(nvgraphSetVertexData(handle, graph, vertex_dim[0], 0));
 	check(nvgraphSetEdgeData(handle, graph, (void*)edge_data, 0));
 
+	//Initializing and start timing
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start);
+
 	// First run with default values
 	if (DEBUG)
 		std::cout << "performing nvgraphPagerank()\n";
 	check(nvgraphPagerank(handle, graph, 0, alpha_p, 0, 0, 1, 0.01f, 0));
+
+	//Record timing, display time, and free memory
+	cudaEventRecord(stop);
+	cudaEventSynchronize(stop);
+	float elapsedTime;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	printf("Pagerank exection time = %f ms\n", elapsedTime);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 	// Get and print result
 	check(nvgraphGetVertexData(handle, graph, (void*)result, 1));
@@ -133,9 +176,19 @@ void nvgraph_set_bookmark(float *bookmark_h, int *indices,int nedges, int nverti
 	for (int i = 0; i < nvertices; i++) {
 		bookmark_h[i] = 1.0f;
 	}
+	int temp = 0;
 	//Cross out any false assumptions
 	for (int i = 0; i < nedges; i++) {
-		bookmark_h[indices[i]] = 0.0f;
+		temp = indices[i];
+		//Ensure vertices are within bounds
+		if (temp >= nvertices) {
+			std::cout << temp << " is bigger than " << nvertices << "!\nIndex: " << i << "\n";
+			system("PAUSE");
+			exit(0);
+		}
+		else {
+			bookmark_h[indices[i]] = 0.0f;
+		}
 	}
 }
 
@@ -143,7 +196,7 @@ void nvgraph_set_bookmark(float *bookmark_h, int *indices,int nedges, int nverti
 void nvgraph_sssp(nvgraphHandle_t *handle_p, nvgraphGraphDescr_t *graph_p, float* edge_data, float* result) {
 	nvgraphHandle_t handle = *handle_p; nvgraphGraphDescr_t graph = *graph_p;
 	std::cout << "STARTING NVGRAPH_SSSP()\n";
-	int vertex_numsets = 1, edge_numsets = 1, source_vertex = 5;
+	int vertex_numsets = 1, edge_numsets = 1, source_vertex = SOURCE_VERTEX;
 	cudaDataType_t edge_type = CUDA_R_32F, vertex_type = CUDA_R_32F;
 
 	//Perform setup for algorithm
@@ -152,6 +205,12 @@ void nvgraph_sssp(nvgraphHandle_t *handle_p, nvgraphGraphDescr_t *graph_p, float
 	check(nvgraphAllocateVertexData(handle, graph, vertex_numsets, &vertex_type));
 	check(nvgraphAllocateEdgeData(handle, graph, edge_numsets, &edge_type));
 	check(nvgraphSetEdgeData(handle, graph, (void*)edge_data, 0));
+
+	//Initialize and start timing
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start);
 
 	//Perform algorithm
 	if (DEBUG)
@@ -173,6 +232,15 @@ void nvgraph_sssp(nvgraphHandle_t *handle_p, nvgraphGraphDescr_t *graph_p, float
 			having to manage result storage until the end. BE SURE TO ALLOCATE THE CORRECT NUMBER OF INDICES! (i.e. if you want to store 3 different results, then allocate
 			3 different vertex data sets.)
 		*/
+
+	//Record timing, display time, and free memory
+	cudaEventRecord(stop);
+	cudaEventSynchronize(stop);
+	float elapsedTime;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	printf("Sssp exection time = %f ms\n", elapsedTime);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 	//Save algorithm output to "result"
 	if (DEBUG)
@@ -280,12 +348,14 @@ void load_from_file(std::string file_name, int* source, int *destination, float 
 		if (line[0] == '#') { continue; }
 
 		std::stringstream iss(line);
-		iss >> source[edge_no] >> destination[edge_no] >> edge_data[edge_no]; //this can be modified to allow edge data to be acquired from the file i.e.: source\tdestination\tedge_weight
-		//edge_data[edge_no] = 1.0; //This is only being used for file "web-Google.txt"
+		iss >> source[edge_no] >> destination[edge_no];// >> edge_data[edge_no]; //this can be modified to allow edge data to be acquired from the file i.e.: source\tdestination\tedge_weight
+		edge_data[edge_no] = 1.0f; //This is only being used for file "web-Stanford.txt"
 		edge_no++;
 	}
-	if (DEBUG)
+	if (DEBUG) {
+		std::cout << "Num edges: " << edge_no << '\n';
 		std::cout << "Finished!\n";
+	}
 	graphData.close();
 }
 
